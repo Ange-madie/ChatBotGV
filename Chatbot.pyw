@@ -10,109 +10,107 @@ class ChatBot(Tk):
         self.savem = {"tag": "", "rep": "", "nrep": ""}
         # self.mot = load(open("mot.ia", "rb"))
         self.ignorer = ["?", "-", ".", "!", "_", " ", ","]
-        self.peuPoint = ["Qui", "est", "C'est", "quoi"]
+        self.peu_point = ["Qui", "est", "C'est", "quoi"]
         self.reponse = ""
         #Fenetre Principale
         self.title("Nora GV 1")
         self.protocol("WM_DELETE_WINDOW", self.fin)
         # Widget de la fenêtre
-        self.afficheMessage = Text(self)
+        self.affiche_message = Text(self)
         self.envoyez = Button(self, text="Envoyez", bg="green", command=self.envoie)
-        self.entreMessage = Entry(self, width=100)
-        self.entreMessage.bind('<Return>', self.envoie)
-        self.afficheMessage.insert(END, "Posez une demande si vous ne voulez rien tapez '/'")
-        self.afficheMessage.config(fg="green", bg="black")
+        self.entre_message = Entry(self, width=100)
+        self.entre_message.bind('<Return>', self.envoie)
+        self.affiche_message.insert(END, "Posez une demande si vous ne voulez rien tapez '/'")
+        self.affiche_message.config(fg="green", bg="black")
 
-    # Fonction pour diviser une phrase en mot
-    def separateurMot(self, phrase: str):
-        mot = []
-        l = ""
-        for i in range(len(phrase)):
-            if phrase[i] not in self.ignorer:
-                l = l + phrase[i]
+
+    def separateur_mot(self, phrase: str):
+        """Fonction pour diviser une phrase en mots."""
+        mots = []
+        l = []
+        for letter in phrase:
+            if letter not in self.ignorer:
+                l.append(letter)
             else:
-                if not l == '':
-                    mot.append(l)
-                l = ""
-        if not l == '':
-            mot.append(l)
+                if l:
+                    mots.append(''.join(l))
+                l = []
+        if l:
+            mots.append(''.join(l))
 
-        return tuple(mot)
+        return tuple(mots)
 
-    def testInTab(self, tab1: list | tuple, tab2: list | tuple):
-        retour = False
+    def test_in_tab(self, tab1: list | tuple, tab2: list | tuple):
         for value in tab1:
             if value in tab2:
                 return True
-            else:
-                retour = False
-        return retour
 
-    def allTestInTab(self, tab1: list | tuple, tab2: list | tuple):
-        test = False
+        return False
+
+    def all_test_in_tab(self, tab1: list | tuple, tab2: list | tuple):
         for value in tab1:
-            if value in tab2:
-                test = True
-            else:
-                test = False
-        return test
+            if value not in tab2:
+                return False
+
+        return True
+    
     def shower(self):
-        self.afficheMessage.grid(row=0, column=0, columnspan=2)
+        self.affiche_message.grid(row=0, column=0, columnspan=2)
         self.envoyez.grid(row=1, column=1)
-        self.entreMessage.grid(row=1, column=0)
+        self.entre_message.grid(row=1, column=0)
 
-    def showMessage(self, message):
-        self.afficheMessage.insert(END, "\n"+message)
+    def show_message(self, message):
+        self.affiche_message.insert(END, "\n"+message)
 
-    def saveInData(self, step: str, another = ""):
+    def save_in_data(self, step: str, another = ""):
         if step == "un":
-            self.saveMot(self.reponse)
-            self.showMessage("User: " + self.reponse)
-            self.showMessage("Nora: Que dois-je répondre ?")
+            self.save_mot(self.reponse)
+            self.show_message("User: " + self.reponse)
+            self.show_message("Nora: Que dois-je répondre ?")
             self.savem["tag"] = "dmr"
             self.savem["rep"] = self.reponse
             self.data[self.reponse] = []
-            self.data[self.reponse].append(self.separateurMot(self.reponse))
-            self.entreMessage.delete(0, END)
+            self.data[self.reponse].append(self.separateur_mot(self.reponse))
+            self.entre_message.delete(0, END)
         elif step == "un'":
-            self.saveMot(another)
-            self.showMessage("Nora: Que dois-je répondre ?")
+            self.save_mot(another)
+            self.show_message("Nora: Que dois-je répondre ?")
             self.savem["tag"] = "dmr"
             self.savem["rep"] = another
             self.data[another] = []
-            self.data[another].append(self.separateurMot(another))
-            self.entreMessage.delete(0, END)
+            self.data[another].append(self.separateur_mot(another))
+            self.entre_message.delete(0, END)
         elif step == "deux":
             self.data[self.savem["rep"]].append(self.reponse)
-            self.showMessage("User: "+self.reponse)
-            self.saveMot(self.reponse)
-            self.showMessage("Nora: D'accord, merci.")
+            self.show_message("User: "+self.reponse)
+            self.save_mot(self.reponse)
+            self.show_message("Nora: D'accord, merci.")
             self.savem["tag"] = ""
             self.savem["rep"] = ""
-            self.entreMessage.delete(0, END)
+            self.entre_message.delete(0, END)
         else:
             print("Bad parameter value for step.")
 
 
     def envoie(self, event=None):
-        self.reponse = self.entreMessage.get()
+        self.reponse = self.entre_message.get()
         if self.reponse == "/":
             self.fin()
         elif self.savem["tag"] == "dmr":
-            self.saveInData("deux")
+            self.save_in_data("deux")
         elif self.savem["tag"] == "dmc":
             if self.reponse == "oui":
                 # Mise dans le fichier data de la nouvelle information après test de non appartenance au fichier data
-                if not self.allTestInTab(self.separateurMot(self.savem["rep"]), self.mot) or not self.testInTab(self.separateurMot(self.savem["rep"]), self.mot):
-                    self.saveMot(self.savem["rep"])
+                if not self.all_test_in_tab(self.separateur_mot(self.savem["rep"]), self.mot) or not self.test_in_tab(self.separateur_mot(self.savem["rep"]), self.mot):
+                    self.save_mot(self.savem["rep"])
                     self.data[self.savem["rep"]] = []
-                    self.data[self.savem["rep"]].append(self.separateurMot(self.savem["rep"]))
+                    self.data[self.savem["rep"]].append(self.separateur_mot(self.savem["rep"]))
                     self.data[self.savem["rep"]].append(self.savem["nrep"])
-                    self.entreMessage.delete(0, END)
-                    self.showMessage("Nora: Ok, User.")
+                    self.entre_message.delete(0, END)
+                    self.show_message("Nora: Ok, User.")
                 else:
-                    self.entreMessage.delete(0, END)
-                    self.showMessage("Nora: Ok.")
+                    self.entre_message.delete(0, END)
+                    self.show_message("Nora: Ok.")
                 self.savem["tag"] = ""
                 self.savem["rep"] = ""
                 self.savem["nrep"] = ""
@@ -121,35 +119,35 @@ class ChatBot(Tk):
                 self.savem["tag"] = ""
                 self.savem["rep"] = ""
                 self.savem["nrep"] = ""
-                self.saveInData("un'", inter)
-                self.saveMot(inter)
-        elif not self.testInTab(self.separateurMot(self.reponse), self.mot):
-            self.saveMot(self.reponse)
-            self.saveInData("un")
-        elif self.testInTab(self.separateurMot(self.reponse), self.mot):
+                self.save_in_data("un'", inter)
+                self.save_mot(inter)
+        elif not self.test_in_tab(self.separateur_mot(self.reponse), self.mot):
+            self.save_mot(self.reponse)
+            self.save_in_data("un")
+        elif self.test_in_tab(self.separateur_mot(self.reponse), self.mot):
             botRep = self.evaluation()
-            self.saveMot(self.reponse)
-            self.showMessage("User: "+self.reponse)
-            self.showMessage(f"Nora: {botRep}")
-            self.showMessage("Nora: Ai-je bien répondu ? (oui/non)")
+            self.save_mot(self.reponse)
+            self.show_message("User: "+self.reponse)
+            self.show_message(f"Nora: {botRep}")
+            self.show_message("Nora: Ai-je bien répondu ? (oui/non)")
             self.savem["tag"] = "dmc"
             self.savem["rep"] = self.reponse
             self.savem["nrep"] = botRep
-            self.entreMessage.delete(0, END)
+            self.entre_message.delete(0, END)
         else:
             botRep = self.evaluation()
-            self.showMessage("User: "+self.reponse)
-            self.showMessage(f"Nora: {botRep}")
-            self.showMessage("Nora: Ai-je bien répondu ? (oui/non)")
+            self.show_message("User: "+self.reponse)
+            self.show_message(f"Nora: {botRep}")
+            self.show_message("Nora: Ai-je bien répondu ? (oui/non)")
             self.savem["tag"] = "dmc"
             self.savem["rep"] = self.reponse
             self.savem["nrep"] = botRep
-            self.entreMessage.delete(0, END)
+            self.entre_message.delete(0, END)
 
 
 
-    def saveMot(self, phrase: str):
-        phrase = self.separateurMot(phrase)
+    def save_mot(self, phrase: str):
+        phrase = self.separateur_mot(phrase)
         for value in phrase:
             if value not in self.mot:
                 self.mot.append(value)
@@ -160,13 +158,13 @@ class ChatBot(Tk):
         cpt = 0
         select = 0
         choisie = ""
-        # self.saveMot(self.reponse)
-        tabReponse = self.separateurMot(self.reponse)
-        print(tabReponse)
+        # self.save_mot(self.reponse)
+        tab_reponse = self.separateur_mot(self.reponse)
+        print(tab_reponse)
         for cle, valeur in self.data.items():
             for w in valeur[0]:
-                if w in tabReponse:
-                    if w in self.peuPoint:
+                if w in tab_reponse:
+                    if w in self.peu_point:
                         cpt += 0.2
                     else:
                         cpt += 1
